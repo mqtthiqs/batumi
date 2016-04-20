@@ -238,23 +238,27 @@ void Processor::Process() {
 
     // if all the pots are maxed out, quadrature mode
     if (ui_->coarse(1) > UINT16_MAX - 256 &&
-	ui_->coarse(2) > UINT16_MAX - 256 &&
-	ui_->coarse(3) > UINT16_MAX - 256)
+        ui_->coarse(2) > UINT16_MAX - 256 &&
+        ui_->coarse(3) > UINT16_MAX - 256) {
       for (int i=1; i<kNumChannels; i++) {
-	lfo_[i].link_to(&lfo_[0]);
-	lfo_[i].set_initial_phase((kNumChannels - i) * (UINT16_MAX >> 2));
+        lfo_[i].link_to(&lfo_[0]);
+        lfo_[i].set_initial_phase((kNumChannels - i) * (UINT16_MAX >> 2));
+        uint16_t level = filtered_cv_[i] >= 0 ? filtered_cv_[i] : -filtered_cv_[i];
+        level = UINT16_MAX - (level << 1);
+        lfo_[i].set_level(level);
       }
-    else // normal phase mode
+    } else { // normal phase mode
       for (int i=1; i<kNumChannels; i++) {
-	lfo_[i].link_to(&lfo_[0]);
-	int16_t cv = (filtered_cv_[i] * ui_->atten(i)) >> 16;
-	lfo_[i].set_initial_phase(AdcValuesToPhase(ui_->coarse(i),
-						   ui_->fine(i),
-						   cv));
-	int16_t div = (7 * static_cast<int32_t>(65535 - ui_->phase(i))) >> 16;
-	CONSTRAIN(div, 1, 16);
-	lfo_[i].set_divider(div);
+        lfo_[i].link_to(&lfo_[0]);
+        int16_t cv = (filtered_cv_[i] * ui_->atten(i)) >> 16;
+        lfo_[i].set_initial_phase(AdcValuesToPhase(ui_->coarse(i),
+                                                   ui_->fine(i),
+                                                   cv));
+        int16_t div = (7 * static_cast<int32_t>(65535 - ui_->phase(i))) >> 16;
+        CONSTRAIN(div, 1, 16);
+        lfo_[i].set_divider(div);
       }
+    }
   }
   break;
 
