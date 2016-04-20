@@ -92,7 +92,7 @@ void Processor::SetFrequency(int8_t lfo_no) {
   int16_t cv = (filtered_cv_[lfo_no] * ui_->atten(lfo_no)) >> 16;
 
   // In sync mode, CV multiplies or divides period
-  if (ui_->sync_mode()) {
+  if (synced_[lfo_no]) {
     if (cv > 0) {
       lfo_[lfo_no].set_multiplier((cv * 8 / 32767) + 1);
       lfo_[lfo_no].set_divider(1);
